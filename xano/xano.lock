@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "objects": {
+    "app:auth": {
+      "guid": "4fe67f5a2d319eaaca7996700f27edd8",
+      "canonical": "auth",
+      "canonical_source": "code"
+    },
+    "app:policy": {
+      "guid": "584cf3adcd8589bc26ece6209d8d3fdb",
+      "canonical": "policy",
+      "canonical_source": "code"
+    },
+    "app:seed": {
+      "guid": "7110fabc369b25f0581044e47d499906",
+      "canonical": "seed",
+      "canonical_source": "code"
+    },
+    "dbo:coverages": {
+      "guid": "4087da2ca2b84f8d6154880bae198986"
+    },
+    "dbo:endorsements": {
+      "guid": "3c83a19f3d24b0b2fcfcde9ebf4ecca3"
+    },
+    "dbo:policies": {
+      "guid": "8b6d09d0dd2c4b8dca2e438912954260"
+    },
+    "dbo:policy_events": {
+      "guid": "347c2de8ae082c4c5320846a144b15ff"
+    },
+    "dbo:policyholders": {
+      "guid": "b24746b7722e8c6e34c4ed7b9ae993ef"
+    },
+    "dbo:users": {
+      "guid": "157d4a98d979cf04b9ccdb98dfc15229"
+    },
+    "query:auth|POST|login": {
+      "guid": "d39d74f907baeb484e9c93358362998a"
+    },
+    "query:policy|GET|get/{policy_id}": {
+      "guid": "e20ddecd8bb7e738fdb11ebc4f42a273"
+    },
+    "query:policy|GET|list": {
+      "guid": "0987e23ecb06fbcf908f88e978782305"
+    },
+    "query:policy|POST|bind": {
+      "guid": "ba72fa530a51ec8f48ae423e478dd83c"
+    },
+    "query:policy|POST|cancel": {
+      "guid": "b11b79c796c4cb3a17be2b8f5d00d264"
+    },
+    "query:policy|POST|endorse": {
+      "guid": "dd8c3d141423fdc2a1dbe5e759e6b555"
+    },
+    "query:policy|POST|quote": {
+      "guid": "576e784b319f308a11dce1281e9ad133"
+    },
+    "query:policy|POST|renew": {
+      "guid": "2afc60c96fff14d7a862a54d02c19a4c"
+    },
+    "query:seed|POST|run": {
+      "guid": "648d04bea4597ffab24de8eee9eb3bd2"
+    }
+  }
+}

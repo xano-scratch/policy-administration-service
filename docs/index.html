@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Policy Administration Service, a governed Xano policy lifecycle</title>
+    <meta
+      name="description"
+      content="A governed insurance policy lifecycle in one Xano API layer: an enforced state machine, premium recomputed on every endorsement, API-layer RBAC, and a full audit trail."
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --panel: #141414;
+        --panel-2: #1a1a1a;
+        --border: #272727;
+        --fg: #fafafa;
+        --muted: #a3a3a3;
+        --muted-2: #737373;
+        --accent: #4f9cf0;
+        --good: #4ade80;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+      a { color: inherit; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+      header.hero { padding: 72px 0 40px; text-align: center; }
+      .eyebrow {
+        display: inline-flex; align-items: center; gap: 8px;
+        border: 1px solid var(--border); border-radius: 999px;
+        padding: 5px 12px; font-size: 12px; color: var(--muted);
+        margin-bottom: 20px;
+      }
+      .eyebrow .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--good); }
+      h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.02em; }
+      .lede { font-size: 18px; color: var(--muted); max-width: 680px; margin: 0 auto 12px; }
+      .meta { font-size: 14px; color: var(--muted-2); margin: 18px 0 24px; }
+      .meta strong { color: var(--fg); font-weight: 600; }
+
+      .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 20px; border-radius: 10px; font-size: 15px; font-weight: 600;
+        text-decoration: none; border: 1px solid transparent; cursor: pointer;
+        transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn.primary { background: var(--fg); color: #0a0a0a; }
+      .btn.primary:hover { background: #e5e5e5; }
+      .btn.ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+      .btn.ghost:hover { border-color: #3f3f3f; background: var(--panel); }
+
+      .shot { margin: 44px 0 8px; }
+      .shot img {
+        width: 100%; height: auto; display: block;
+        border: 1px solid var(--border); border-radius: var(--radius);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+      .shot figcaption { text-align: center; color: var(--muted-2); font-size: 13px; margin-top: 10px; }
+
+      section { padding: 40px 0; border-top: 1px solid var(--border); }
+      section:first-of-type { border-top: none; }
+      h2 { font-size: 22px; margin: 0 0 6px; letter-spacing: -0.01em; }
+      .section-sub { color: var(--muted); margin: 0 0 22px; font-size: 15px; }
+
+      .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+      .card h3 { margin: 0 0 6px; font-size: 15px; }
+      .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted-2); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+      td code { color: var(--accent); font-size: 13px; }
+      .verb { color: var(--muted); font-weight: 600; }
+
+      pre {
+        background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+        padding: 16px; overflow-x: auto; font-size: 13.5px; margin: 0; color: #e5e5e5;
+      }
+      .use-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      .copy {
+        background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+        border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+      }
+      .copy:hover { color: var(--fg); border-color: #3f3f3f; }
+
+      .note { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 14px 16px; color: var(--muted); font-size: 14px; }
+      ul.plain { padding-left: 18px; margin: 0; color: var(--muted); font-size: 14px; }
+      ul.plain li { margin: 6px 0; }
+      ul.plain b { color: var(--fg); font-weight: 600; }
+
+      footer { border-top: 1px solid var(--border); padding: 28px 0 56px; color: var(--muted-2); font-size: 13px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero">
+        <span class="eyebrow"><span class="dot"></span> Backend Modernization · Insurance</span>
+        <h1>Policy Administration Service</h1>
+        <p class="lede">
+          A governed insurance policy lifecycle in one Xano API layer. Quote, bind, endorse, renew, and cancel are an
+          enforced state machine. The premium is recomputed on every change, and every change is written to a readable
+          history.
+        </p>
+        <p class="meta"><strong>6 tables</strong> · <strong>9 endpoints</strong> · <strong>3 API groups</strong></p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://github.com/xano-scratch/policy-administration-service">View on GitHub</a>
+          <a class="btn ghost" href="#use">Use this template</a>
+        </div>
+      </header>
+
+      <figure class="shot">
+        <img src="screenshot.png" alt="Policy detail: the base premium, its recompute after an endorsement, and the coverages it is built from" />
+        <figcaption>Policy detail: the base premium (975), its recompute to the current premium (1,125) after an endorsement, and the coverages behind it.</figcaption>
+      </figure>
+
+      <section>
+        <h2>What it demonstrates</h2>
+        <p class="section-sub">The kind of service a legacy admin monolith holds today, rebuilt as one Xano backend a team can read and trust.</p>
+        <div class="grid">
+          <div class="card">
+            <h3>A real state machine</h3>
+            <p>Status moves quoted, bound, active, renewed, cancelled. Illegal moves are refused at the API layer, not applied.</p>
+          </div>
+          <div class="card">
+            <h3>Derived logic in one place</h3>
+            <p>The base premium is computed from the coverages. An endorsement recomputes it and records the value before and after.</p>
+          </div>
+          <div class="card">
+            <h3>API-layer RBAC</h3>
+            <p>Agents quote, underwriters bind and endorse, viewers read. Each endpoint re-reads the caller's live role. Never row-level security.</p>
+          </div>
+          <div class="card">
+            <h3>An append-only audit trail</h3>
+            <p>Every transition and every premium change writes an event, so the full story of a policy reads in order.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>API surface</h2>
+        <p class="section-sub">Nine endpoints across three groups. Each one enforces a rule a human would want to audit.</p>
+        <table>
+          <thead>
+            <tr><th>Verb</th><th>Path</th><th>What it enforces</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="verb">POST</td><td><code>/api:auth/login</code></td><td>Checks the password, mints a role-carrying token</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:policy/quote</code></td><td>Agent or underwriter, needs a coverage, computes the base premium</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:policy/bind</code></td><td>Underwriter, only a quoted policy, stamps the term dates</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:policy/endorse</code></td><td>Underwriter, only an active policy, recomputes the premium</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:policy/renew</code></td><td>Underwriter, active and in its renewal window, rolls the term forward</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:policy/cancel</code></td><td>Underwriter, not already cancelled, records the reason</td></tr>
+            <tr><td class="verb">GET</td><td><code>/api:policy/get/{policy_id}</code></td><td>Any role, the policy with coverages, endorsements, and history</td></tr>
+            <tr><td class="verb">GET</td><td><code>/api:policy/list</code></td><td>Any role, policies with status and premium, filterable</td></tr>
+            <tr><td class="verb">POST</td><td><code>/api:seed/run</code></td><td>Loads the demo book, ephemeral only</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>The screens</h2>
+        <p class="section-sub">A React and Vite frontend that derives its paths and types from the backend defs.</p>
+        <ul class="plain">
+          <li><b>Login and role switcher.</b> Sign in as an agent, underwriter, or viewer, and see which actions the role unlocks.</li>
+          <li><b>Policy list.</b> Status badges and current premium, filter by status, start a new quote.</li>
+          <li><b>Quote and bind.</b> Enter a policyholder and coverages, watch the base premium estimate, then bind.</li>
+          <li><b>Policy detail.</b> Coverages, the current premium, an endorsement form with an inline recompute, renew and cancel, and a history timeline.</li>
+        </ul>
+      </section>
+
+      <section id="use">
+        <h2>Use this template</h2>
+        <p class="section-sub">Clone it, sign in to Xano once, and deploy to a live ephemeral. Or hand this prompt to your coding agent.</p>
+        <div class="use-head">
+          <span style="color: var(--muted-2); font-size: 13px">Agent prompt</span>
+          <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('prompt').innerText).then(()=>{this.innerText='Copied';setTimeout(()=>this.innerText='Copy',1500)})">Copy</button>
+        </div>
+        <pre id="prompt">Set up the Policy Administration Service Xano template from
+https://github.com/xano-scratch/policy-administration-service
+
+Clone the repo, run `npm install`, then `npx xanots login` and
+`npm run xano:deploy` to get a live URL. Open it, sign in as the
+underwriter, and walk me through the quote, bind, endorse, renew,
+and cancel flow. Then show me where each rule is enforced in xano/.</pre>
+      </section>
+
+      <section>
+        <h2>Try the live demo</h2>
+        <div class="note">
+          A live ephemeral link may be attached to the repo or its build notes. Ephemeral environments expire, and each
+          redeploy publishes a new URL, so a link can stop serving. The durable artifact is this repo: clone it and run
+          <code>npm run xano:deploy</code> for a fresh live URL of your own. Demo accounts share the password
+          <code>demo1234</code>, and the book loads on first sign-in.
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="wrap">Built with XanoTS. MIT licensed. Seed data only, not a production reference.</div>
+    </footer>
+  </body>
+</html>
